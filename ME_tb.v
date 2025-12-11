@@ -12,31 +12,33 @@ mearly_seq_detector dut (
     .out(out)
 );
 
-// 40ns clock period
 initial clk = 1'b0;
 always #20 clk = ~clk;
 
-// Hold reset high for a long cycle, then release
 initial begin
     rst = 1'b1;
     #300;
     rst = 1'b0;
 end
 
-// Drive input with fixed period; includes 1101 sequence
 initial begin
-    i = 1'b0; #200;       // align with reset release
-    i = 1'b1; #80;        // bit 1
-    i = 1'b1; #80;        // bit 1
-    i = 1'b0; #80;        // bit 0
-    i = 1'b1; #80;        // bit 1 -> should trigger detect
+    i = 1'b0;
+    #320;
+
+    i = 1'b1; #40;
+    i = 1'b1; #40;
+    i = 1'b0; #40;
+    i = 1'b1; #40;
     i = 1'b0; #80;
-    i = 1'b0; #80;
-    i = 1'b1; #80;
-    i = 1'b1; #80;
-    i = 1'b0; #80;
-    i = 1'b1; #80;
-    #200;
+
+    i = 1'b1; #40;
+    i = 1'b1;
+    rst = 1'b1; #40;
+    rst = 1'b0;
+    i = 1'b0; #40;
+    i = 1'b1; #40;
+
+    #120;
     $finish;
 end
 
