@@ -1,50 +1,26 @@
 `timescale 1ns / 1ps
 
-// Overlapping Moore sequence detector for pattern 10101
+// 2. Moore Machine Style (1클럭 지연 반응)
 module moore_10101(
-    input  clk,
-    input  rst,
-    input  i,
+    input clk, rst, i,
     output reg out
 );
+    reg [4:0] shift_reg;
 
-// state encoding
-// 0: idle
-// 1: saw 1
-// 2: saw 10
-// 3: saw 101
-// 4: saw 1010
-// 5: detected 10101
-reg [2:0] state, next;
+    always @(posedge clk) begin
+        if (rst) begin
+            shift_reg = 5'b00000;
+            out = 1'b0;
+        end
+        else begin
+            // [Moore 순서]
+            // 1. 현재 저장된 값(State)으로 먼저 검사 (Check Logic based on State)
+            if (shift_reg == 5'b10101) out = 1'b1;
+            else out = 1'b0;
 
-always @(posedge clk) begin
-    if (rst) state <= 3'd0;
-    else     state <= next;
-end
-
-always @(*) begin
-    // default
-    next = 3'd0;
-
-    if (state == 3'd0) begin
-        next = i ? 3'd1 : 3'd0;
-    end else if (state == 3'd1) begin
-        next = i ? 3'd1 : 3'd2;
-    end else if (state == 3'd2) begin
-        next = i ? 3'd3 : 3'd0;
-    end else if (state == 3'd3) begin
-        next = i ? 3'd1 : 3'd4;
-    end else if (state == 3'd4) begin
-        next = i ? 3'd5 : 3'd0;
-    end else if (state == 3'd5) begin
-        // overlap: keep last 1 or 10 depending on input
-        next = i ? 3'd1 : 3'd2;
+            // 2. 그 다음에 시프트하여 다음 상태 준비 (Update Next State)
+            shift_reg = shift_reg << 1;
+            shift_reg[0] = i;
+        end
     end
-end
-
-always @(*) begin
-    out = (state == 3'd5);
-end
-
 endmodule
-
