@@ -2,54 +2,41 @@
 
 module ME_tb;
 
-reg clk,reset,x;
-wire[3:0] seq;
-wire z;
+reg clk, rst, i;
+wire out;
 
-ME u_ME(
-    .clk(clk ),
-    .reset(reset ),
-    .x(x ),
-    .z(z ),
-    .seq(seq )
+mearly_seq_detector dut (
+    .clk(clk),
+    .rst(rst),
+    .i(i),
+    .out(out)
 );
 
+// 40ns clock period
 initial clk = 1'b0;
-initial reset = 1'b1;
-initial x = 1'b0;
+always #20 clk = ~clk;
 
-
-always clk = #20 ~clk;
-
-always@(reset) begin
-    reset = #30 ~reset;
-end
-
-always@(x) begin
-    x = #90 ~x;
-    x = #20 ~x;
-    
-    x = #20 ~x;
-    x = #20 ~x;
-    
-    x = #60 ~x;
-    x = #20 ~x;
-    
-    x = #20 ~x;
-    x = #20 ~x;
-    
-    x = #100 ~x;
-    x = #20 ~x;
-    
-    x = #20 ~x;
-    x = #20 ~x;
-    
-    x = #60 ~x;
-    x = #20 ~x;
-end
-
+// Hold reset high for a long cycle, then release
 initial begin
-    #760
+    rst = 1'b1;
+    #300;
+    rst = 1'b0;
+end
+
+// Drive input with fixed period; includes 1101 sequence
+initial begin
+    i = 1'b0; #200;       // align with reset release
+    i = 1'b1; #80;        // bit 1
+    i = 1'b1; #80;        // bit 1
+    i = 1'b0; #80;        // bit 0
+    i = 1'b1; #80;        // bit 1 -> should trigger detect
+    i = 1'b0; #80;
+    i = 1'b0; #80;
+    i = 1'b1; #80;
+    i = 1'b1; #80;
+    i = 1'b0; #80;
+    i = 1'b1; #80;
+    #200;
     $finish;
 end
 
